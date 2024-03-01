@@ -5,6 +5,7 @@
 
 auto main(int argc, char** argv) -> int
 {
+    spdlog::set_level(spdlog::level::debug);
     try
     {
         const auto application = std::make_unique<Breakout::Application>();

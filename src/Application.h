@@ -1,5 +1,8 @@
 #pragma once
 
+#include <memory>
+
+#include "AssetManager.h"
 #include "glad/glad.h"
 #include "GLFW/glfw3.h"
 
@@ -19,6 +22,8 @@ namespace Breakout
         GLFWwindow* mp_Window;
 
         ApplicationState m_State;
+
+        std::unique_ptr<Toyengine::AssetManager> m_AssetManager;
 
         auto handleEvents() -> void;
         auto update(float deltaTime) -> void;

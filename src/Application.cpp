@@ -47,6 +47,10 @@ Breakout::Application::Application()
     glEnable(GL_BLEND);
     glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
 
+    this->m_AssetManager = std::make_unique<Toyengine::AssetManager>();
+
+    auto shader = this->m_AssetManager->loadShader("textureShader", "shaders/texture2d.vert", "shaders/texture2d.frag");
+
     spdlog::info("Application initialized");
 }
 
