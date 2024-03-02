@@ -15,5 +15,7 @@ namespace Toyengine
 
         [[nodiscard]] auto isStuck() const -> bool;
         auto setStuck(bool stuck) -> void;
+
+        auto getRadius() -> float;
     };
 }

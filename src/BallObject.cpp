@@ -53,3 +53,8 @@ auto Toyengine::BallObject::setStuck(bool stuck) -> void
 {
     this->m_Stuck = stuck;
 }
+
+auto Toyengine::BallObject::getRadius() -> float
+{
+    return this->m_Radius;
+}

@@ -63,6 +63,12 @@ auto Breakout::Application::update(float deltaTime) -> void
     this->mp_Ball->move(deltaTime, 1000);
 
     this->handeCollisions();
+
+    if (this->mp_Ball->getPosition().y >= 800) // did ball reach bottom edge?
+    {
+        this->resetLevel();
+        this->resetPlayer();
+    }
 }
 
 auto Breakout::Application::render() -> void
@@ -86,14 +92,57 @@ auto Breakout::Application::handeCollisions() -> void
     {
         if (!box->isDestroyed())
         {
-            if (this->checkCollision(*this->mp_Ball, *box))
+            if (Collision collision = this->checkCollision(*this->mp_Ball, *box); std::get<0>(collision))
+            // if collision is true
             {
+                // destroy block if not solid
                 if (!box->isSolid())
                 {
                     box->setDestroyed(true);
                 }
+
+                // collision resolution
+                const Direction dir = std::get<1>(collision);
+                const glm::vec2 difference = std::get<2>(collision);
+                if (dir == LEFT || dir == RIGHT) // horizontal collision
+                {
+                    this->mp_Ball->setVelocity(glm::vec2(-this->mp_Ball->getVelocity().x,
+                                                         this->mp_Ball->getVelocity().y));
+                    // relocate
+                    float penetration = this->mp_Ball->getRadius() - std::abs(difference.x);
+                    if (dir == LEFT)
+                        this->mp_Ball->translate(glm::vec2(penetration, 0));
+                    else
+                        this->mp_Ball->translate(glm::vec2(-penetration, 0));
+                }
+                else // vertical collision
+                {
+                    this->mp_Ball->setVelocity(glm::vec2(this->mp_Ball->getVelocity().x,
+                                                         -this->mp_Ball->getVelocity().y));
+                    // relocate
+                    const float penetration = this->mp_Ball->getRadius() - std::abs(difference.y);
+                    if (dir == UP)
+                        this->mp_Ball->translate(glm::vec2(0, -penetration));
+                    else
+                        this->mp_Ball->translate(glm::vec2(0, penetration));
+                }
             }
         }
+    }
+
+    if (const Collision result = this->checkCollision(*this->mp_Ball, *this->mp_Player); !this->mp_Ball->isStuck() &&
+        std::get<0>(result))
+    {
+        // check where it hit the board, and change velocity based on where it hit the board
+        const float centerBoard = this->mp_Player->getPosition().x + this->mp_Player->getSize().x / 2.0f;
+        const float distance = (this->mp_Ball->getPosition().x + this->mp_Ball->getRadius()) - centerBoard;
+        const float percentage = distance / (this->mp_Player->getSize().x / 2.0f);
+        // then move accordingly
+        constexpr float strength = 2.0f;
+        const glm::vec2 oldVelocity = this->mp_Ball->getVelocity();
+        this->mp_Ball->setVelocity(glm::vec2(kBallVelocity.x * percentage * strength, -this->mp_Ball->getVelocity().y));
+        this->mp_Ball->setVelocity(normalize(this->mp_Ball->getVelocity()) * length(oldVelocity));
+        this->mp_Ball->setVelocity(glm::vec2(0, -1.0f * abs(this->mp_Ball->getVelocity().y)));
     }
 }
 
@@ -104,6 +153,80 @@ auto Breakout::Application::checkCollision(Toyengine::GameEntity& one, Toyengine
     const bool collisionY = one.getPosition().y + one.getSize().y >= two.getPosition().y &&
         two.getPosition().y + two.getSize().y >= one.getPosition().y;
     return collisionX && collisionY;
+}
+
+auto Breakout::Application::checkCollision(Toyengine::BallObject& ball, Toyengine::GameEntity& box) -> Collision
+{
+    // get center point circle first
+    glm::vec2 center(ball.getPosition() + ball.getRadius());
+    // calculate AABB info (center, half-extents)
+    glm::vec2 aabbHalfs(box.getSize().x / 2.0f, box.getSize().y / 2.0f);
+    glm::vec2 aabbCenter(box.getPosition().x + aabbHalfs.x, box.getPosition().y + aabbHalfs.y);
+    // get difference vector between both centers
+    glm::vec2 difference = center - aabbCenter;
+    glm::vec2 clamped = glm::clamp(difference, -aabbHalfs, aabbHalfs);
+    // now that we know the clamped values, add this to AABB_center and we get the value of box closest to circle
+    glm::vec2 closest = aabbCenter + clamped;
+    // now retrieve vector between center circle and closest point AABB and check if length < radius
+    difference = closest - center;
+
+    if (length(difference) < ball.getRadius())
+    {
+        // not <= since in that case a collision also occurs when object one exactly touches object two, which they are at the end of each collision resolution stage.
+        return std::make_tuple(true, this->vectorDirection(difference), difference);
+    }
+    return std::make_tuple(false, UP, glm::vec2(0.0f, 0.0f));
+}
+
+auto Breakout::Application::vectorDirection(glm::vec2 target) -> Direction
+{
+    constexpr glm::vec2 compass[] = {
+        glm::vec2(0.0f, 1.0f), // up
+        glm::vec2(1.0f, 0.0f), // right
+        glm::vec2(0.0f, -1.0f), // down
+        glm::vec2(-1.0f, 0.0f) // left
+    };
+    float max = 0.0f;
+    unsigned int best_match = -1;
+    for (unsigned int i = 0; i < 4; i++)
+    {
+        if (const float dot_product = dot(normalize(target), compass[i]); dot_product > max)
+        {
+            max = dot_product;
+            best_match = i;
+        }
+    }
+    return static_cast<Direction>(best_match);
+}
+
+auto Breakout::Application::resetLevel() -> void
+{
+    if (this->m_CurrentLevel == 0)
+    {
+        this->m_Level[0].load("levels/one.lvl", 1000, 800 / 2);
+    }
+
+    else if (this->m_CurrentLevel == 1)
+    {
+        this->m_Level[1].load("levels/two.lvl", 1000, 800 / 2);
+    }
+    else if (this->m_CurrentLevel == 2)
+    {
+        this->m_Level[2].load("levels/three.lvl", 1000, 800 / 2);
+    }
+    else if (this->m_CurrentLevel == 3)
+    {
+        this->m_Level[3].load("levels/four.lvl", 1000, 800 / 2);
+    }
+}
+
+auto Breakout::Application::resetPlayer() -> void
+{
+    this->mp_Player->setSize(this->kPlayerSize);
+    this->mp_Player->setPosition(glm::vec2(1000 / 2.0f - this->kPlayerSize.x / 2.0f, 800 - this->kPlayerSize.y));
+    this->mp_Ball->reset(
+        this->mp_Player->getPosition() + glm::vec2(this->kPlayerSize.x / 2.0f - this->kBallRadius, -(this->kBallRadius * 2.0f)),
+        this->kBallVelocity);
 }
 
 Breakout::Application::Application() : m_State(ACTIVE)

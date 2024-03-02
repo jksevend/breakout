@@ -33,6 +33,11 @@ auto Toyengine::GameEntity::getPosition() const -> glm::vec2
     return this->m_Position;
 }
 
+auto Toyengine::GameEntity::setPosition(glm::vec2 value) -> void
+{
+    this->m_Position = value;
+}
+
 auto Toyengine::GameEntity::translate(const glm::vec2 vector2) -> void
 {
     this->m_Position.x = this->m_Position.x + vector2.x;
@@ -42,6 +47,21 @@ auto Toyengine::GameEntity::translate(const glm::vec2 vector2) -> void
 auto Toyengine::GameEntity::getSize() -> glm::vec2
 {
     return this->m_Size;
+}
+
+auto Toyengine::GameEntity::setSize(glm::vec2 value) -> void
+{
+    this->m_Size = value;
+}
+
+auto Toyengine::GameEntity::getVelocity() -> glm::vec2
+{
+    return this->m_Velocity;
+}
+
+auto Toyengine::GameEntity::setVelocity(glm::vec2 value) -> void
+{
+    this->m_Velocity = value;
 }
 
 void Toyengine::GameEntity::draw(const std::unique_ptr<Renderer>& renderer)

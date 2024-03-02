@@ -9,8 +9,19 @@
 #include "glad/glad.h"
 #include "GLFW/glfw3.h"
 
+
 namespace Breakout
 {
+    enum Direction
+    {
+        UP,
+        RIGHT,
+        DOWN,
+        LEFT
+    };
+
+    typedef std::tuple<bool, Direction, glm::vec2> Collision;
+
     enum ApplicationState
     {
         ACTIVE,
@@ -46,6 +57,11 @@ namespace Breakout
 
         auto handeCollisions() -> void;
         auto checkCollision(Toyengine::GameEntity& one, Toyengine::GameEntity& two) -> bool;
+        auto checkCollision(Toyengine::BallObject& ball, Toyengine::GameEntity& box) -> Collision;
+        auto vectorDirection(glm::vec2 target) -> Direction;
+
+        auto resetLevel() -> void;
+        auto resetPlayer() -> void;
 
     public:
         inline static bool sKeys[1024];

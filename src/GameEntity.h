@@ -30,8 +30,12 @@ namespace Toyengine
         auto setDestroyed(bool value) -> void;
 
         [[nodiscard]] auto getPosition() const -> glm::vec2;
+        auto setPosition(glm::vec2 value) -> void;
         auto translate(glm::vec2 vector2) -> void;
         auto getSize() -> glm::vec2;
+        auto setSize(glm::vec2 value) -> void;
+        auto getVelocity() -> glm::vec2;
+        auto setVelocity(glm::vec2 value) -> void;
 
         virtual void draw(const std::unique_ptr<Renderer>& renderer);
     };
