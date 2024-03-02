@@ -9,7 +9,7 @@ namespace Toyengine
 {
     class GameLevel
     {
-        std::vector<GameEntity> m_Bricks;
+        std::vector<GameEntity*> m_Bricks;
 
         std::shared_ptr<AssetManager> m_AssetManager;
 
@@ -22,8 +22,8 @@ namespace Toyengine
 
         auto draw(const std::unique_ptr<Renderer>& renderer) -> void;
         [[nodiscard]] auto isCompleted() const -> bool;
-        [[nodiscard]] auto getBricks() const -> std::vector<GameEntity>&;
+        [[nodiscard]] auto getBricks() -> std::vector<GameEntity*>;
 
-        auto load(std::string file, unsigned int levelWidth, unsigned int levelHeight) -> void;
+        auto load(const std::string& file, unsigned int levelWidth, unsigned int levelHeight) -> void;
     };
 }

@@ -23,6 +23,27 @@ auto Toyengine::GameEntity::isDestroyed() const -> bool
     return this->m_IsDestroyed;
 }
 
+auto Toyengine::GameEntity::setDestroyed(bool value) -> void
+{
+    this->m_IsDestroyed = value;
+}
+
+auto Toyengine::GameEntity::getPosition() const -> glm::vec2
+{
+    return this->m_Position;
+}
+
+auto Toyengine::GameEntity::translate(const glm::vec2 vector2) -> void
+{
+    this->m_Position.x = this->m_Position.x + vector2.x;
+    this->m_Position.y = this->m_Position.y + vector2.y;
+}
+
+auto Toyengine::GameEntity::getSize() -> glm::vec2
+{
+    return this->m_Size;
+}
+
 void Toyengine::GameEntity::draw(const std::unique_ptr<Renderer>& renderer)
 {
     renderer->drawSprite(this->m_Sprite, this->m_Position, this->m_Size, this->m_Color, this->m_Rotation);

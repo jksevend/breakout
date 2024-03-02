@@ -11,13 +11,20 @@ Toyengine::Texture2D::Texture2D()
 {
 }
 
-Toyengine::Texture2D::Texture2D(const unsigned int width, const unsigned int height, const unsigned char* data) :
+Toyengine::Texture2D::Texture2D(const unsigned int width, const unsigned int height, const unsigned char* data,
+                                bool alpha) :
     m_Width(width),
     m_Height(height), m_InternalFormat(GL_RGB), m_ImageFormat(GL_RGB), m_WrapS(GL_REPEAT), m_WrapT(GL_REPEAT),
     m_FilterMin(GL_LINEAR_MIPMAP_LINEAR), m_FilterMax(GL_LINEAR)
 {
     glGenTextures(1, &this->m_Id);
     this->bind();
+
+    if (alpha)
+    {
+        this->m_InternalFormat = GL_RGBA;
+        this->m_ImageFormat = GL_RGBA;
+    }
 
     glTexImage2D(GL_TEXTURE_2D,
                  0,
@@ -42,10 +49,4 @@ Toyengine::Texture2D::Texture2D(const unsigned int width, const unsigned int hei
 auto Toyengine::Texture2D::bind() const -> void
 {
     glBindTexture(GL_TEXTURE_2D, this->m_Id);
-}
-
-auto Toyengine::Texture2D::setAlphaFormat() -> void
-{
-    this->m_InternalFormat = GL_RGBA;
-    this->m_ImageFormat = GL_RGBA;
 }

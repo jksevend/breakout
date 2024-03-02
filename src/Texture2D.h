@@ -16,10 +16,9 @@ namespace Toyengine
     public:
         [[nodiscard]] auto getId() const -> unsigned int;
         Texture2D();
-        Texture2D(unsigned int width, unsigned int height, const unsigned char* data);
+        Texture2D(unsigned int width, unsigned int height, const unsigned char* data, bool alpha);
         ~Texture2D() = default;
 
         auto bind() const -> void;
-        auto setAlphaFormat() -> void;
     };
 }

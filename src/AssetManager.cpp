@@ -28,20 +28,16 @@ auto Toyengine::AssetManager::loadShaderFromFile(std::string vertexPath, std::st
 auto Toyengine::AssetManager::loadTextureFromFile(const std::string& path, bool alpha) -> Texture2D
 {
     int width, height, nrChannels;
-    unsigned char* data = stbi_load(path.c_str(), &width, &height, &nrChannels, 3);
+    int channels = alpha ? STBI_rgb_alpha : STBI_rgb;
+
+    unsigned char* data = stbi_load(path.c_str(), &width, &height, &nrChannels, channels);
     if (data == nullptr)
     {
         const auto message = std::format("Failed to load texture '{}' with error: {}", path, stbi_failure_reason());
         throw std::runtime_error(message);
     }
 
-    auto texture2d = Texture2D(width, height, data);
-
-    if (alpha)
-    {
-        texture2d.setAlphaFormat();
-    }
-
+    const auto texture2d = Texture2D(width, height, data, alpha);
     stbi_image_free(data);
 
     return texture2d;
