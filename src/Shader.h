@@ -35,6 +35,10 @@ namespace Toyengine
 
         [[nodiscard]] auto getId() const -> unsigned int;
 
-        auto activate() -> void;
+        auto activate() const -> void;
+
+        auto setVector3f(const std::string& name, const glm::vec3& value, bool useShader = false) const -> void;
+        auto setMatrix4(const std::string& name, const glm::mat4& matrix, bool useShader = false) const -> void;
+        auto setInteger(const std::string& name, int i, bool useShader = false) const -> void;
     };
 } // Toyengine

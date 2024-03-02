@@ -101,7 +101,36 @@ Toyengine::Shader::Shader(const std::string& vertexCode, const std::string& frag
     }
 }
 
-auto Toyengine::Shader::activate() -> void
+auto Toyengine::Shader::activate() const -> void
 {
     glUseProgram(this->m_Id);
+}
+
+auto Toyengine::Shader::setVector3f(const std::string& name, const glm::vec3& value, const bool useShader) const -> void
+{
+    if (useShader)
+    {
+        this->activate();
+    }
+
+    glUniform3f(glGetUniformLocation(this->m_Id, name.c_str()), value.x, value.y, value.z);
+}
+
+auto Toyengine::Shader::setMatrix4(const std::string& name, const glm::mat4& matrix, const bool useShader) const -> void
+{
+    if (useShader)
+    {
+        this->activate();
+    }
+
+    glUniformMatrix4fv(glGetUniformLocation(this->m_Id, name.c_str()), 1, GL_FALSE, value_ptr(matrix));
+}
+
+auto Toyengine::Shader::setInteger(const std::string& name, const int i, const bool useShader) const -> void
+{
+    if (useShader)
+    {
+        this->activate();
+    }
+    glUniform1i(glGetUniformLocation(this->m_Id, name.c_str()), i);
 }
