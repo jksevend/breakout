@@ -6,6 +6,7 @@
 #include "BallObject.h"
 #include "GameLevel.h"
 #include "ParticleGenerator.h"
+#include "PostProcessor.h"
 #include "Renderer.h"
 #include "glad/glad.h"
 #include "GLFW/glfw3.h"
@@ -47,6 +48,8 @@ namespace Breakout
 
         float kBallRadius = 12.5f;
 
+        float m_ShakeTime = 0.0f;
+
         GLFWwindow* mp_Window;
         Toyengine::GameEntity* mp_Player;
         Toyengine::BallObject* mp_Ball;
@@ -54,6 +57,7 @@ namespace Breakout
         std::shared_ptr<Toyengine::AssetManager> m_AssetManager;
         std::unique_ptr<Toyengine::Renderer> m_Renderer;
         std::unique_ptr<Toyengine::ParticleGenerator> m_ParticleGenerator;
+        std::unique_ptr<Toyengine::PostProcessor> m_PostProcessor;
 
         ApplicationState m_State;
         std::vector<Toyengine::GameLevel> m_Level;
@@ -63,7 +67,7 @@ namespace Breakout
         auto update(float deltaTime) -> void;
         auto render() -> void;
 
-        auto handeCollisions() -> void;
+        auto handleCollisions() -> void;
         auto checkCollision(Toyengine::BallObject& ball, Toyengine::GameEntity& box) -> Collision;
         auto vectorDirection(glm::vec2 target) -> Direction;
 

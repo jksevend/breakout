@@ -155,3 +155,12 @@ auto Toyengine::Shader::setInteger(const std::string& name, const int i, const b
     }
     glUniform1i(glGetUniformLocation(this->m_Id, name.c_str()), i);
 }
+
+auto Toyengine::Shader::setFloat(const std::string& name, float value, bool useShader) -> void
+{
+    if (useShader)
+    {
+        this->activate();
+    }
+    glUniform1f(glGetUniformLocation(this->m_Id, name.c_str()), value);
+}

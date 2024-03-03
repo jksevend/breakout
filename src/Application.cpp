@@ -62,9 +62,16 @@ auto Breakout::Application::update(float deltaTime) -> void
 {
     this->mp_Ball->move(deltaTime, 1000);
 
-    this->handeCollisions();
+    this->handleCollisions();
 
     this->m_ParticleGenerator->update(deltaTime, this->mp_Ball, 2, glm::vec2(this->mp_Ball->getRadius() / 2.0f));
+
+    if (this->m_ShakeTime > 0.0f)
+    {
+        this->m_ShakeTime -= deltaTime;
+        if (this->m_ShakeTime <= 0.0f)
+            this->m_PostProcessor->setShake(false);
+    }
 
     if (this->mp_Ball->getPosition().y >= 800) // did ball reach bottom edge?
     {
@@ -80,39 +87,46 @@ auto Breakout::Application::render() -> void
 
     if (this->m_State == ACTIVE)
     {
+        this->m_PostProcessor->beginRender();
         this->m_Renderer->drawSprite(this->m_AssetManager->getTexture2D("background"), glm::vec2(0.0f, 0.0f),
                                      glm::vec2(1000, 800));
         this->m_Level.at(this->m_CurrentLevel).draw(this->m_Renderer);
         this->mp_Player->draw(this->m_Renderer);
         this->m_ParticleGenerator->draw();
         this->mp_Ball->draw(this->m_Renderer);
+
+        this->m_PostProcessor->endRender();
+        this->m_PostProcessor->render(glfwGetTime());
     }
 }
 
-auto Breakout::Application::handeCollisions() -> void
+auto Breakout::Application::handleCollisions() -> void
 {
     for (const auto box : this->m_Level.at(this->m_CurrentLevel).getBricks())
     {
         if (!box->isDestroyed())
         {
-            if (Collision collision = this->checkCollision(*this->mp_Ball, *box); std::get<0>(collision))
-            // if collision is true
+            Collision collision = this->checkCollision(*this->mp_Ball, *box);
+            if (std::get<0>(collision)) // if collision is true
             {
                 // destroy block if not solid
                 if (!box->isSolid())
-                {
                     box->setDestroyed(true);
+                else
+                {
+                    // if block is solid, enable shake effect
+                    this->m_ShakeTime = 0.05f;
+                    this->m_PostProcessor->setShake(true);
                 }
-
                 // collision resolution
-                const Direction dir = std::get<1>(collision);
-                const glm::vec2 difference = std::get<2>(collision);
+                Direction dir = std::get<1>(collision);
+                glm::vec2 diff_vector = std::get<2>(collision);
                 if (dir == LEFT || dir == RIGHT) // horizontal collision
                 {
                     this->mp_Ball->setVelocity(glm::vec2(-this->mp_Ball->getVelocity().x,
                                                          this->mp_Ball->getVelocity().y));
                     // relocate
-                    float penetration = this->mp_Ball->getRadius() - std::abs(difference.x);
+                    float penetration = this->mp_Ball->getRadius() - std::abs(diff_vector.x);
                     if (dir == LEFT)
                         this->mp_Ball->translate(glm::vec2(penetration, 0));
                     else
@@ -123,7 +137,7 @@ auto Breakout::Application::handeCollisions() -> void
                     this->mp_Ball->setVelocity(glm::vec2(this->mp_Ball->getVelocity().x,
                                                          -this->mp_Ball->getVelocity().y));
                     // relocate
-                    const float penetration = this->mp_Ball->getRadius() - std::abs(difference.y);
+                    const float penetration = this->mp_Ball->getRadius() - std::abs(diff_vector.y);
                     if (dir == UP)
                         this->mp_Ball->translate(glm::vec2(0, -penetration));
                     else
@@ -257,6 +271,8 @@ Breakout::Application::Application() : m_State(ACTIVE)
                                                          "shaders/texture2d.frag");
     const auto particleShader = this->m_AssetManager->loadShader("particleShader", "shaders/particle.vert",
                                                                  "shaders/particle.frag");
+    const auto effectsShader = this->m_AssetManager->loadShader("effectsShader", "shaders/effects.vert",
+                                                                "shaders/effects.frag");
     const glm::mat4 projection = glm::ortho(0.0f, static_cast<float>(1000), static_cast<float>(800), 0.0f, -1.0f, 1.0f);
 
     // DO NOT FORGET THIS
@@ -277,6 +293,7 @@ Breakout::Application::Application() : m_State(ACTIVE)
 
     this->m_Renderer = std::make_unique<Toyengine::Renderer>(shader);
     this->m_ParticleGenerator = std::make_unique<Toyengine::ParticleGenerator>(particleShader, particleTexture, 500);
+    this->m_PostProcessor = std::make_unique<Toyengine::PostProcessor>(effectsShader, 1000, 800);
 
     Toyengine::GameLevel level1(this->m_AssetManager);
     level1.load("levels/one.lvl", 1000, 800 / 2);
