@@ -1,5 +1,6 @@
 #include "Shader.h"
 
+#include "../cmake-build-debug/_deps/glfw-src/deps/linmath.h"
 #include "spdlog/spdlog.h"
 
 auto Toyengine::Shader::getGlShaderType(const ShaderType type) -> unsigned int
@@ -106,6 +107,16 @@ auto Toyengine::Shader::activate() const -> void
     glUseProgram(this->m_Id);
 }
 
+auto Toyengine::Shader::setVector2f(const std::string& name, const glm::vec2& value, bool useShader) const -> void
+{
+    if (useShader)
+    {
+        this->activate();
+    }
+
+    glUniform2f(glGetUniformLocation(this->m_Id, name.c_str()), value.x, value.y);
+}
+
 auto Toyengine::Shader::setVector3f(const std::string& name, const glm::vec3& value, const bool useShader) const -> void
 {
     if (useShader)
@@ -114,6 +125,16 @@ auto Toyengine::Shader::setVector3f(const std::string& name, const glm::vec3& va
     }
 
     glUniform3f(glGetUniformLocation(this->m_Id, name.c_str()), value.x, value.y, value.z);
+}
+
+auto Toyengine::Shader::setVector4f(const std::string& name, const glm::vec4& value, bool useShader) const -> void
+{
+    if (useShader)
+    {
+        this->activate();
+    }
+
+    glUniform4f(glGetUniformLocation(this->m_Id, name.c_str()), value.x, value.y, value.z, value.w);
 }
 
 auto Toyengine::Shader::setMatrix4(const std::string& name, const glm::mat4& matrix, const bool useShader) const -> void

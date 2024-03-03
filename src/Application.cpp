@@ -64,6 +64,8 @@ auto Breakout::Application::update(float deltaTime) -> void
 
     this->handeCollisions();
 
+    this->m_ParticleGenerator->update(deltaTime, this->mp_Ball, 2, glm::vec2(this->mp_Ball->getRadius() / 2.0f));
+
     if (this->mp_Ball->getPosition().y >= 800) // did ball reach bottom edge?
     {
         this->resetLevel();
@@ -82,6 +84,7 @@ auto Breakout::Application::render() -> void
                                      glm::vec2(1000, 800));
         this->m_Level.at(this->m_CurrentLevel).draw(this->m_Renderer);
         this->mp_Player->draw(this->m_Renderer);
+        this->m_ParticleGenerator->draw();
         this->mp_Ball->draw(this->m_Renderer);
     }
 }
@@ -142,17 +145,8 @@ auto Breakout::Application::handeCollisions() -> void
         const glm::vec2 oldVelocity = this->mp_Ball->getVelocity();
         this->mp_Ball->setVelocity(glm::vec2(kBallVelocity.x * percentage * strength, -this->mp_Ball->getVelocity().y));
         this->mp_Ball->setVelocity(normalize(this->mp_Ball->getVelocity()) * length(oldVelocity));
-        this->mp_Ball->setVelocity(glm::vec2(0, -1.0f * abs(this->mp_Ball->getVelocity().y)));
+        // this->mp_Ball->setVelocity(glm::vec2(0, -1.0f * abs(this->mp_Ball->getVelocity().y)));
     }
-}
-
-auto Breakout::Application::checkCollision(Toyengine::GameEntity& one, Toyengine::GameEntity& two) -> bool
-{
-    const bool collisionX = one.getPosition().x + one.getSize().x >= two.getPosition().x &&
-        two.getPosition().x + two.getSize().x >= one.getPosition().x;
-    const bool collisionY = one.getPosition().y + one.getSize().y >= two.getPosition().y &&
-        two.getPosition().y + two.getSize().y >= one.getPosition().y;
-    return collisionX && collisionY;
 }
 
 auto Breakout::Application::checkCollision(Toyengine::BallObject& ball, Toyengine::GameEntity& box) -> Collision
@@ -225,7 +219,8 @@ auto Breakout::Application::resetPlayer() -> void
     this->mp_Player->setSize(this->kPlayerSize);
     this->mp_Player->setPosition(glm::vec2(1000 / 2.0f - this->kPlayerSize.x / 2.0f, 800 - this->kPlayerSize.y));
     this->mp_Ball->reset(
-        this->mp_Player->getPosition() + glm::vec2(this->kPlayerSize.x / 2.0f - this->kBallRadius, -(this->kBallRadius * 2.0f)),
+        this->mp_Player->getPosition() + glm::vec2(this->kPlayerSize.x / 2.0f - this->kBallRadius,
+                                                   -(this->kBallRadius * 2.0f)),
         this->kBallVelocity);
 }
 
@@ -251,23 +246,37 @@ Breakout::Application::Application() : m_State(ACTIVE)
     glEnable(GL_BLEND);
     glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
 
+    // if constexpr (TOYENGINE_DEBUG)
+    // {
+    //     glPolygonMode(GL_FRONT_AND_BACK, GL_LINE);
+    // }
 
     this->m_AssetManager = std::make_shared<Toyengine::AssetManager>();
 
-    auto shader = this->m_AssetManager->loadShader("textureShader", "shaders/texture2d.vert", "shaders/texture2d.frag");
-    const glm::mat4 projection = glm::ortho(0.0f, static_cast<float>(1000),
-                                            static_cast<float>(800), 0.0f, -1.0f, 1.0f);
+    const auto shader = this->m_AssetManager->loadShader("textureShader", "shaders/texture2d.vert",
+                                                         "shaders/texture2d.frag");
+    const auto particleShader = this->m_AssetManager->loadShader("particleShader", "shaders/particle.vert",
+                                                                 "shaders/particle.frag");
+    const glm::mat4 projection = glm::ortho(0.0f, static_cast<float>(1000), static_cast<float>(800), 0.0f, -1.0f, 1.0f);
+
+    // DO NOT FORGET THIS
     shader.activate();
     shader.setInteger("image", 0);
     shader.setMatrix4("projection", projection);
 
-    this->m_Renderer = std::make_unique<Toyengine::Renderer>(shader);
+    particleShader.activate();
+    particleShader.setInteger("image", 0);
+    particleShader.setMatrix4("projection", projection);
 
     this->m_AssetManager->loadTexture2D("background", "sprites/background.jpg", false);
     this->m_AssetManager->loadTexture2D("block", "sprites/block.png", false);
     this->m_AssetManager->loadTexture2D("block_solid", "sprites/block_solid.png", false);
     this->m_AssetManager->loadTexture2D("paddle", "sprites/paddle.png", false);
     this->m_AssetManager->loadTexture2D("face", "sprites/awesomeface.png", true);
+    auto particleTexture = this->m_AssetManager->loadTexture2D("particle", "sprites/particle.png", true);
+
+    this->m_Renderer = std::make_unique<Toyengine::Renderer>(shader);
+    this->m_ParticleGenerator = std::make_unique<Toyengine::ParticleGenerator>(particleShader, particleTexture, 500);
 
     Toyengine::GameLevel level1(this->m_AssetManager);
     level1.load("levels/one.lvl", 1000, 800 / 2);

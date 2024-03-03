@@ -49,7 +49,6 @@ auto Toyengine::Renderer::drawSprite(const Texture2D& texture, const glm::vec2 p
     this->m_Shader.setMatrix4("model", model);
     this->m_Shader.setVector3f("spriteColor", color);
 
-    glActiveTexture(GL_TEXTURE0);
     texture.bind();
 
     glBindVertexArray(this->m_VertexArray);

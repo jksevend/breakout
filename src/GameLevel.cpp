@@ -1,5 +1,6 @@
 #include "GameLevel.h"
 
+#include <algorithm>
 #include <fstream>
 #include <sstream>
 #include <utility>
@@ -8,10 +9,10 @@ auto Toyengine::GameLevel::initialize(std::vector<std::vector<unsigned int>> til
                                       unsigned int levelHeight) -> void
 {
     // calculate dimensions
-    unsigned int height = tileData.size();
-    unsigned int width = tileData[0].size();
-    float unit_width = static_cast<float>(levelWidth) / static_cast<float>(width);
-    float unit_height = static_cast<float>(levelHeight) / static_cast<float>(height);
+    const unsigned int height = tileData.size();
+    const unsigned int width = tileData[0].size();
+    const float unit_width = static_cast<float>(levelWidth) / static_cast<float>(width);
+    const float unit_height = static_cast<float>(levelHeight) / static_cast<float>(height);
     // initialize level tiles based on tileData
     for (unsigned int y = 0; y < height; ++y)
     {
@@ -20,8 +21,8 @@ auto Toyengine::GameLevel::initialize(std::vector<std::vector<unsigned int>> til
             // check block type from level data (2D level array)
             if (tileData[y][x] == 1) // solid
             {
-                glm::vec2 pos(unit_width * x, unit_height * y);
-                glm::vec2 size(unit_width, unit_height);
+                const glm::vec2 pos(unit_width * x, unit_height * y);
+                const glm::vec2 size(unit_width, unit_height);
                 auto entity = new GameEntity(pos, size,
                                              this->m_AssetManager->getTexture2D("block_solid"),
                                              glm::vec3(0.8f, 0.8f, 0.7f)
@@ -56,7 +57,7 @@ Toyengine::GameLevel::GameLevel(std::shared_ptr<AssetManager> assetManager) : m_
 
 auto Toyengine::GameLevel::draw(const std::unique_ptr<Renderer>& renderer) -> void
 {
-    for (auto brick : this->m_Bricks)
+    for (const auto brick : this->m_Bricks)
     {
         if (!brick->isDestroyed())
             brick->draw(renderer);
@@ -65,12 +66,10 @@ auto Toyengine::GameLevel::draw(const std::unique_ptr<Renderer>& renderer) -> vo
 
 auto Toyengine::GameLevel::isCompleted() const -> bool
 {
-    for (auto& brick : this->m_Bricks)
+    return std::ranges::all_of(this->m_Bricks, [](const auto brick)
     {
-        if (!brick->isSolid() && !brick->isDestroyed())
-            return false;
-    }
-    return true;
+        return !brick->isSolid() && !brick->isDestroyed();
+    });
 }
 
 auto Toyengine::GameLevel::getBricks() -> std::vector<GameEntity*>

@@ -37,7 +37,9 @@ namespace Toyengine
 
         auto activate() const -> void;
 
+        auto setVector2f(const std::string& name, const glm::vec2& value, bool useShader = false) const -> void;
         auto setVector3f(const std::string& name, const glm::vec3& value, bool useShader = false) const -> void;
+        auto setVector4f(const std::string& name, const glm::vec4& value, bool useShader = false) const -> void;
         auto setMatrix4(const std::string& name, const glm::mat4& matrix, bool useShader = false) const -> void;
         auto setInteger(const std::string& name, int i, bool useShader = false) const -> void;
     };

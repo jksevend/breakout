@@ -5,10 +5,17 @@
 #include "AssetManager.h"
 #include "BallObject.h"
 #include "GameLevel.h"
+#include "ParticleGenerator.h"
 #include "Renderer.h"
 #include "glad/glad.h"
 #include "GLFW/glfw3.h"
 
+
+#ifdef NDEBUG
+    #define TOYENGINE_DEBUG false
+#else
+#define TOYENGINE_DEBUG true
+#endif
 
 namespace Breakout
 {
@@ -46,6 +53,7 @@ namespace Breakout
 
         std::shared_ptr<Toyengine::AssetManager> m_AssetManager;
         std::unique_ptr<Toyengine::Renderer> m_Renderer;
+        std::unique_ptr<Toyengine::ParticleGenerator> m_ParticleGenerator;
 
         ApplicationState m_State;
         std::vector<Toyengine::GameLevel> m_Level;
@@ -56,7 +64,6 @@ namespace Breakout
         auto render() -> void;
 
         auto handeCollisions() -> void;
-        auto checkCollision(Toyengine::GameEntity& one, Toyengine::GameEntity& two) -> bool;
         auto checkCollision(Toyengine::BallObject& ball, Toyengine::GameEntity& box) -> Collision;
         auto vectorDirection(glm::vec2 target) -> Direction;
 
